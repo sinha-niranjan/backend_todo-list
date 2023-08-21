@@ -69,3 +69,91 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    res
+      .status(200)
+      .cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
+      .json({
+        success: true,
+        message: "User is logout !",
+      });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("+password");
+
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide old and new password !",
+      });
+    }
+
+    const isMatch = await user.matchPassword(oldPassword);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect Old Password ! ",
+      });
+    }
+
+    user.password = newPassword;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password is Updated !",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+exports.updateProfile = async(req,res) => {
+  try{
+    const user = await User.findById(req.user._id);
+
+    const {name,email} = req.body;
+
+    if(name) {
+      user.name = name
+    }
+
+    if(email){
+      user.email = email;
+    }
+
+    // User Avatart tooo
+
+    await user.save();
+
+    res.status(200).json({
+      success:true,
+      message:"profile is Updated ! "
+    })
+
+
+  }catch(error){
+    res.status(500).json({
+      success:false,
+      error:error.message
+    })
+  }
+}
