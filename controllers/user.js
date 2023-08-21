@@ -125,18 +125,17 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-
-exports.updateProfile = async(req,res) => {
-  try{
+exports.updateProfile = async (req, res) => {
+  try {
     const user = await User.findById(req.user._id);
 
-    const {name,email} = req.body;
+    const { name, email } = req.body;
 
-    if(name) {
-      user.name = name
+    if (name) {
+      user.name = name;
     }
 
-    if(email){
+    if (email) {
       user.email = email;
     }
 
@@ -145,15 +144,36 @@ exports.updateProfile = async(req,res) => {
     await user.save();
 
     res.status(200).json({
-      success:true,
-      message:"profile is Updated ! "
-    })
-
-
-  }catch(error){
+      success: true,
+      message: "profile is Updated ! ",
+    });
+  } catch (error) {
     res.status(500).json({
-      success:false,
-      error:error.message
-    })
+      success: false,
+      error: error.message,
+    });
   }
-}
+};
+
+exports.deleteMyProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    await user.deleteOne();
+
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile is deleted ! ",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
