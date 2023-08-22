@@ -181,11 +181,11 @@ exports.deleteMyProfile = async (req, res) => {
 
 exports.getUser = async(req,res) => {
   try{
-    const users = User.find();
+     
 
     res.status(200).json({
       success:true,
-      users
+      message:"THis is it"
     })
 
   }

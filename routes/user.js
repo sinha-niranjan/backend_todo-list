@@ -18,6 +18,6 @@ router.route("/logout").get(logout);
 router.route("/update/password").put(isAuthenticated, updatePassword);
 router.route("/update/profile").put(isAuthenticated, updateProfile);
 router.route("/delete/me").delete(isAuthenticated,deleteMyProfile);
-router.route("/user").get(getUser)
+router.route("/").get(getUser)
 
 module.exports = router;
