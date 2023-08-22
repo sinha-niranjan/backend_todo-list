@@ -1,6 +1,8 @@
 const { sendEmail } = require("../middlewares/sendEmail");
 const User = require("../models/User");
 
+const crypto = require("crypto");
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -251,6 +253,45 @@ exports.forgotPassword = async (req, res) => {
         error: error.message,
       });
     }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if(!user){
+      return res.status(404).json({
+        success:false,
+        message:"Token is invalid or expired token !"
+      })
+    }
+
+    user.password = req.body.password;
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+
+    res.status(200).json({
+      success:true,
+      message:"password Updated ! "
+    })
   } catch (error) {
     res.status(500).json({
       success: false,
