@@ -1,3 +1,4 @@
+const { sendEmail } = require("../middlewares/sendEmail");
 const User = require("../models/User");
 
 exports.register = async (req, res) => {
@@ -178,21 +179,83 @@ exports.deleteMyProfile = async (req, res) => {
   }
 };
 
-
-exports.getUser = async(req,res) => {
-  try{
-    const users = User.find();
+exports.myProfile = async (req, res) => {
+  try {
+    const user = User.findById(req.user._id);
 
     res.status(200).json({
-      success:true,
-      users
-    })
-
-  }
-  catch(error){
+      success: true,
+      user,
+    });
+  } catch (error) {
     res.status(500).json({
-    success:false,
-    error:error.message
-    })
+      success: false,
+      error: error.message,
+    });
   }
-}
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = User.find({});
+
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found ! ",
+      });
+    }
+
+    const resetPasswordToken = await user.getResetPasswordToken();
+
+    await user.save();
+
+    const resetUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/api/v1/password/reset/${resetPasswordToken}`;
+
+    const message = `Reset Your Password by : -  \n\n ${resetUrl}`;
+
+    try {
+      await sendEmail({
+        emai: user.email,
+        subject: "Reset Password",
+        message,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Email sent to ${user.email}`,
+        
+      });
+    } catch (error) {
+       user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
