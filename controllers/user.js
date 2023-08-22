@@ -218,7 +218,7 @@ exports.forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User Not Found ! ",
+        message: "User Not Found",
       });
     }
 
@@ -234,7 +234,7 @@ exports.forgotPassword = async (req, res) => {
 
     try {
       await sendEmail({
-        emai: user.email,
+        email: user.email,
         subject: "Reset Password",
         message,
       });
@@ -242,10 +242,9 @@ exports.forgotPassword = async (req, res) => {
       res.status(200).json({
         success: true,
         message: `Email sent to ${user.email}`,
-        
       });
     } catch (error) {
-       user.resetPasswordToken = undefined;
+      user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       res.status(500).json({
         success: false,
